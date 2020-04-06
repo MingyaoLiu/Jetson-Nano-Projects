@@ -1,0 +1,9 @@
+{
+  "globalDependencies": {
+    "mocha": "registry:dt/mocha",
+    "node": "registry:dt/node"
+  },
+  "dependencies": {
+    "chai": "registry:npm/chai"
+  }
+}
