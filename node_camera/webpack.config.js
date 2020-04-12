@@ -43,6 +43,14 @@ module.exports = {
                 to: "www",
                 toType: 'dir',
             },
+            {
+                from: "Dockerfile.template",
+                to: "Dockerfile.template",
+            },
+            {
+                from: "package.json",
+                to: "package.json",
+            },
             // {
             //     from: 'src/tensorvortex.com-secrets/crt/*.pem',
             //     to: 'tensorvortex.com-secrets/crt/*.pem'

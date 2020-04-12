@@ -6,7 +6,7 @@ import fs from "fs";
 import http from "http";
 import https from "https";
 import path from "path";
-import { Codec, SensorMode, StillCamera, StreamCamera } from "pi-camera-connect";
+import { Codec, Rotation, SensorMode, StillCamera, StreamCamera } from "pi-camera-connect";
 
 
 let port = 80;
@@ -48,15 +48,16 @@ const router = Router();
 router.get("/api/cam", (req: Request, res: Response) => {
     console.log("API CAM");
     const streamCamera = new StreamCamera({
-        codec: Codec.H264,
+        codec: Codec.MJPEG,
         width: 1280,
         height: 720,
+        fps: 30,
+        rotation: Rotation.Rotate90,
     });
 
     const videoStream = streamCamera.createStream();
     const head = {
-        "Content-Length": 99999999,
-        "Content-Type": "video/mp4",
+        "Content-Type": "image/jpeg",
         };
     res.writeHead(200, head);
 
@@ -64,7 +65,7 @@ router.get("/api/cam", (req: Request, res: Response) => {
 
     streamCamera.startCapture().then(() => {
         console.log("stream start capture");
-        setTimeout(() => streamCamera.stopCapture(), 5000);
+        streamCamera.stopCapture();
     });
 });
 

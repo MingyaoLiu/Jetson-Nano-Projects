@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
 
-  <title>The HTML5 Herald</title>
+  <title>The HTML5 Cam</title>
   <meta name="description" content="The HTML5 Herald">
   <meta name="author" content="SitePoint">
 
@@ -14,10 +14,19 @@
 
 <body>
   <script src="index.js"></script>
-
-  <video style="height: 400px" controls muted="muted" autoplay>
-    <source src="http://localhost:80/api/cam" type="video/mp4">
-  </video>
+  <script src="mjpeg.js"></script>
+  <!-- <video style="height: 400px" controls muted="muted" autoplay>
+    <source src="http://192.168.86.24:80/api/cam" type="video/mjpeg">
+  </video> -->
   <!-- <img src="still-image.jpg" /> -->
+
+  <!-- <img src="http://192.168.86.24:80/api/cam"> -->
+  <canvas id="player" style="background: #000;">
+    Your browser sucks.
+  </canvas>
 </body>
+<script>
+  var player = new MJPEG.Player("player", "http://192.168.86.24:80/api/cam");
+  player.start();
+</script>
 </html>
