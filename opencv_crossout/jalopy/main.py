@@ -4,7 +4,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QDesktopWidget, QWidget
 
-from changeSettings import main
 from driveTime import drive
 from helpScreen import ui_MainWindowHelp
 

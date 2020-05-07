@@ -1,16 +1,3 @@
-#        _       _
-#       | |     | |
-#       | | __ _| | ___  _ __  _   _
-#   _   | |/ _` | |/ _ \| '_ \| | | |
-#  | |__| | (_| | | (_) | |_) | |_| |
-#   \____/ \__,_|_|\___/| .__/ \__, |
-#                       | |     __/ |
-#                       |_|    |___/
-#
-# A self-driving system for Euro Truck Simulator 2
-# Eric Cheng
-# 15-112 TP
-
 from sys import platform
 
 import cv2
