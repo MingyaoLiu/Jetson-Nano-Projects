@@ -58,15 +58,11 @@ class Ui_MainWindow(object):
         font.setPointSize(22)
         self.label_2.setFont(font)
         self.label_2.setObjectName("label_2")
-        self.checkSettings = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkSettings.setGeometry(QtCore.QRect(50, 539, 331, 41))
         font = QtGui.QFont()
         font.setFamily("Inter UI")
         font.setPointSize(12)
         font.setBold(True)
         font.setWeight(75)
-        self.checkSettings.setFont(font)
-        self.checkSettings.setObjectName("checkSettings")
         self.splitter_2 = QtWidgets.QSplitter(self.centralwidget)
         self.splitter_2.setGeometry(QtCore.QRect(0, 290, 800, 52))
         self.splitter_2.setOrientation(QtCore.Qt.Horizontal)
@@ -110,12 +106,6 @@ class Ui_MainWindow(object):
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-
-    def runSettings(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        self.checkSettings.setText(_translate(
-                    "MainWindow", "Cross Out settings ready"))
-        main()
 
 
 if __name__ == "__main__":
