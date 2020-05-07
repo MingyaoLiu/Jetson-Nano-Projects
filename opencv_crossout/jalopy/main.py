@@ -79,7 +79,6 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         MainWindow.setWindowIcon(QIcon('./assets/crossoutruuu.jpg'))
-        # MainWindow.center(MainWindow)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -101,11 +100,6 @@ class Ui_MainWindow(object):
         self.quitButton.setText(_translate("MainWindow", "Quit"))
         self.quitButton.clicked.connect(QApplication.instance().quit)
 
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
 
 
 if __name__ == "__main__":
