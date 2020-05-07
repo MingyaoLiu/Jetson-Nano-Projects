@@ -5,7 +5,6 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QDesktopWidget, QWidget
 
 from driveTime import drive
-from helpScreen import ui_MainWindowHelp
 
 
 class Ui_MainWindow(object):
@@ -77,9 +76,6 @@ class Ui_MainWindow(object):
         self.splitter.setObjectName("splitter")
         self.playButton = QtWidgets.QPushButton(self.splitter)
         self.playButton.setObjectName("playButton")
-        self.helpButton = QtWidgets.QPushButton(self.splitter)
-        self.helpButton.setFlat(False)
-        self.helpButton.setObjectName("helpButton")
         self.quitButton = QtWidgets.QPushButton(self.splitter)
         self.quitButton.setObjectName("quitButton")
         MainWindow.setCentralWidget(self.centralwidget)
