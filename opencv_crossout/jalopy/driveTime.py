@@ -95,7 +95,7 @@ def drive():
             # Pause OpenCv
             if cv2.waitKey(10) & 0xFF == ord('p'):
                 # print("pause!")
-                pauseMenu = cv2.imread("Pause.png")
+                pauseMenu = cv2.imread("./assets/Pause.png")
                 result = cv2.addWeighted(pauseMenu, 1, screen, 0.9, 0)
                 cv2.imshow('Jalopy', result)
                 isActive = False

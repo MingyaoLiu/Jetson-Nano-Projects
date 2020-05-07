@@ -82,7 +82,7 @@ class Ui_MainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-        MainWindow.setWindowIcon(QIcon('../assets/truck.png'))
+        MainWindow.setWindowIcon(QIcon('./assets/crossoutruuu.jpg'))
         # MainWindow.center(MainWindow)
 
         self.retranslateUi(MainWindow)
@@ -97,9 +97,6 @@ class Ui_MainWindow(object):
             "MainWindow", "CrossOut ML Test"))
 
         # Change CrossOut Settings
-        self.checkSettings.setText(_translate(
-            "MainWindow", "Open CrossOut Config"))
-        self.checkSettings.clicked.connect(self.runSettings)
 
         self.playButton.setText(_translate("MainWindow", "Run Program"))
         self.playButton.clicked.connect(drive)
