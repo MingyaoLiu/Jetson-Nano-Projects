@@ -10,11 +10,6 @@ from helpScreen import ui_MainWindowHelp
 
 
 class Ui_MainWindow(object):
-    def openWindow(self):
-        self.window = QtWidgets.QMainWindow()
-        self.ui = ui_MainWindowHelp()
-        self.ui.setupUi(self.window)
-        self.window.show()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -100,13 +95,13 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Jalopy"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "CrossOut"))
 
-        self.label.setText(_translate("MainWindow", "Jalopy"))
+        self.label.setText(_translate("MainWindow", "CrossOut"))
         self.label_2.setText(_translate(
-            "MainWindow", "A self driving simulator"))
+            "MainWindow", "CrossOut ML Test"))
 
-        # Change Euro Truck Settings
+        # Change CrossOut Settings
         self.checkSettings.setText(_translate(
             "MainWindow", "Open CrossOut Config"))
         self.checkSettings.clicked.connect(self.runSettings)
@@ -114,8 +109,6 @@ class Ui_MainWindow(object):
         self.playButton.setText(_translate("MainWindow", "Run Program"))
         self.playButton.clicked.connect(drive)
 
-        self.helpButton.setText(_translate("MainWindow", "Help"))
-        self.helpButton.clicked.connect(self.openWindow)
 
         self.quitButton.setText(_translate("MainWindow", "Quit"))
         self.quitButton.clicked.connect(QApplication.instance().quit)
