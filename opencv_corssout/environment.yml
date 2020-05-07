@@ -1,0 +1,7 @@
+name: cv2env
+channels:
+  - python
+dependencies:
+  - python
+  - numpy
+  - opencv
