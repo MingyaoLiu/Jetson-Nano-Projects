@@ -18,11 +18,11 @@ def findConfig():
     # Find the Euro Truck Simulator 2 directory in Documents
     home = os.path.expanduser('~')
     documents = os.path.join(home, 'Documents')
-    euro = os.path.join(documents, 'Euro Truck Simulator 2')
-    path = euro + '\config.cfg'
+    mygame = os.path.join(documents, 'My Games')
+    crossout = os.path.join(mygame, 'Crossout')
+    path = crossout + '\user_config.xml'
     # Open config.cfg
     return path
-
 
 def checkConfig():
     # See if the user has ran Jalopy before

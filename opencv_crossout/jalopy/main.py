@@ -108,10 +108,10 @@ class Ui_MainWindow(object):
 
         # Change Euro Truck Settings
         self.checkSettings.setText(_translate(
-            "MainWindow", "Modify Euro Truck config.cfg?"))
+            "MainWindow", "Open CrossOut Config"))
         self.checkSettings.clicked.connect(self.runSettings)
 
-        self.playButton.setText(_translate("MainWindow", "Play now"))
+        self.playButton.setText(_translate("MainWindow", "Run Program"))
         self.playButton.clicked.connect(drive)
 
         self.helpButton.setText(_translate("MainWindow", "Help"))
@@ -129,7 +129,7 @@ class Ui_MainWindow(object):
     def runSettings(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.checkSettings.setText(_translate(
-                    "MainWindow", "Euro Truck settings ready"))
+                    "MainWindow", "Cross Out settings ready"))
         main()
 
 
