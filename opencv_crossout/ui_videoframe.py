@@ -19,6 +19,7 @@ import InputTrigger
 
 from protobuf_settings import Settings
 
+import numpy as np
 
 
 screenWidth = 1920
@@ -123,9 +124,9 @@ get_resource_patrol_battle_label_height_end = int(screenHeight / 1.3 + get_resou
 get_resource_patrol_battle_label_trigger_pos_x = int(get_resource_battle_label_width_start + get_resource_battle_label_width / 2)
 get_resource_patrol_battle_label_trigger_pos_y = int(get_resource_patrol_battle_label_height_start + get_resource_battle_label_height / 2)
 
-battle_type_title_label_width = 240
-battle_type_title_label_width_start = int(screenWidth / 12 + 5 - battle_type_title_label_width / 2)
-battle_type_title_label_width_end = int(screenWidth / 12 + 5 + battle_type_title_label_width / 2)
+battle_type_title_label_width = 250
+battle_type_title_label_width_start = int(screenWidth / 12 + 10 - battle_type_title_label_width / 2)
+battle_type_title_label_width_end = int(screenWidth / 12 + 10 + battle_type_title_label_width / 2)
 battle_type_title_label_height = 60
 battle_type_title_label_height_start = int(screenHeight / 13.5 - battle_type_title_label_height / 2)
 battle_type_title_label_height_end = int(screenHeight / 13.5 + battle_type_title_label_height / 2)
@@ -179,11 +180,39 @@ mainmenu_challenge_complete_ok_height_end = int(screenHeight / 1.08 + mainmenu_c
 mainmenu_challenge_complete_ok_trigger_pos_x = int(mainmenu_challenge_complete_ok_width_start + mainmenu_challenge_complete_ok_width / 2)
 mainmenu_challenge_complete_ok_trigger_pos_y = int(mainmenu_challenge_complete_ok_height_start + mainmenu_challenge_complete_ok_height / 2)
 
+
+in_battle_front_view_width = 720
+in_battle_front_view_width_start = int(screenWidth / 2 - in_battle_front_view_width / 2)
+in_battle_front_view_width_end = int(screenWidth / 2 + in_battle_front_view_width / 2)
+in_battle_front_view_height = 320
+in_battle_front_view_height_start = int(screenHeight / 2.2 - in_battle_front_view_height / 2)
+in_battle_front_view_height_end = int(screenHeight / 2.2 + in_battle_front_view_height / 2)
+in_battle_front_view_trigger_pos_x = int(in_battle_front_view_width_start + in_battle_front_view_width / 2)
+in_battle_front_view_trigger_pos_y = int(in_battle_front_view_height_start + in_battle_front_view_height / 2)
+
+
+in_battle_health_digit_width = 46
+in_battle_health_digit_width_start = int(screenWidth / 2 - 58 - in_battle_health_digit_width / 2)
+in_battle_health_digit_width_end = int(screenWidth / 2 - 58 + in_battle_health_digit_width / 2)
+in_battle_health_digit_height = 22
+in_battle_health_digit_height_start = int(screenHeight - 28 - in_battle_health_digit_height / 2)
+in_battle_health_digit_height_end = int(screenHeight - 28 + in_battle_health_digit_height / 2)
+in_battle_health_digit_trigger_pos_x = int(in_battle_health_digit_width_start + in_battle_health_digit_width / 2)
+in_battle_health_digit_trigger_pos_y = int(in_battle_health_digit_height_start + in_battle_health_digit_height / 2)
+
+isAlreadySelfDestruct = False
+isBattleAlreadyActive = False
+
 def bot():
 
-    currentStep = ScreenStep.BattlePrepareScreen
+    global isAlreadySelfDestruct
+    global isBattleAlreadyActive
+
+
+    currentStep = ScreenStep.InBattleNow
 
     d = d3dshot.create(capture_output='numpy')
+    d.framebuffer = 200
     d.display = d.displays[1]
     d.capture(target_fps=20, region=(0, 0, screenWidth, screenHeight))
     time.sleep(1)
@@ -192,20 +221,16 @@ def bot():
     retry_count = 0
     max_retry_count = 500
 
-    isIdleActive = False
     isDead = False
 
     while True:
-        time.sleep(0.1)
+        # print(currentStep, retry_count)
 
-
-        print(currentStep, retry_count)
-
-        frame = d.get_latest_frame()
-        frame =  cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        np_frame = d.get_latest_frame()
+        frame =  cv2.cvtColor(np_frame, cv2.COLOR_BGR2RGB)
         # cv2.imshow("CrossML", frame)
 
-        # test_frame = frame[ battle_lose_survivor_part_height_start:battle_lose_survivor_part_height_end, battle_lose_survivor_part_width_start:battle_lose_survivor_part_width_end ]
+        # test_frame = frame[ in_battle_front_view_height_start:in_battle_front_view_height_end, in_battle_front_view_width_start:in_battle_front_view_width_end ]
         # cv2.imshow("TestCrop", test_frame)
         # text = pytesseract.image_to_string(test_frame, lang='eng')
         # print(text)
@@ -348,55 +373,57 @@ def bot():
 
 
         elif currentStep == ScreenStep.InBattleNow:
-            # battle_lose_wait_frame = frame[battle_lose_wait_height_start:battle_lose_wait_height_end, battle_lose_wait_width_start:battle_lose_wait_width_end]
+            battle_lose_wait_frame = frame[battle_lose_wait_height_start:battle_lose_wait_height_end, battle_lose_wait_width_start:battle_lose_wait_width_end]
             # cv2.imshow("InBattleCrop", battle_lose_wait_frame)
-            # text = pytesseract.image_to_string(battle_lose_wait_frame, lang='eng')
-            # print(text)
-            # if text == "PS" :
-            #     currentStep += 1
-            #     cv2.destroyWindow("InBattleCrop")
-            #     wrap(True, isIdleActive)
-            #     isIdleActive = False
-            # else:
-            #     print("No TEXT")
-            #     wrap(False, isIdleActive)
-            #     isIdleActive = True
+            ps_text = pytesseract.image_to_string(battle_lose_wait_frame, lang='eng')
+
             battle_lose_survivor_part_frame = frame[battle_lose_survivor_part_height_start:battle_lose_survivor_part_height_end, battle_lose_survivor_part_width_start:battle_lose_survivor_part_width_end]
-            cv2.imshow("InBattleCrop", battle_lose_survivor_part_frame)
-            text = pytesseract.image_to_string(battle_lose_survivor_part_frame, lang='eng')
-            print(text)
-            if text == "Survivor's parts":
+            # cv2.imshow("InBattleCrop", battle_lose_survivor_part_frame)
+            surv_text = pytesseract.image_to_string(battle_lose_survivor_part_frame, lang='eng')
+            print(ps_text, surv_text)
+
+            if (surv_text == "Survivor's parts" and ps_text) or (retry_count >= max_retry_count):
                 retry_count = 0
                 currentStep += 1
-                cv2.destroyWindow("InBattleCrop")
-                wrap(True, isIdleActive)
-                isIdleActive = False
-            elif retry_count >= max_retry_count:
-                retry_count = 0
-                currentStep += 1
-                cv2.destroyWindow("InBattleCrop")
+                # cv2.destroyWindow("InBattleCrop")
             else:
-                print("Not ENDING YET")
-                wrap(False, isIdleActive)
-                isIdleActive = True
+
+                health_frame = frame[ in_battle_health_digit_height_start:in_battle_health_digit_height_end, in_battle_health_digit_width_start:in_battle_health_digit_width_end ]
+                # cv2.imshow("TestCrop", health_frame)
+                a = pytesseract.image_to_string(health_frame)
+                try:
+                    inta = int(a)
+                    print(inta)
+                    if (inta <= 150):
+                        selfDesctruct()
+                except ValueError:
+                    # print(ValueError)
+                    pass
+
+                DoBattleNow()
                 retry_count += 1
 
         elif currentStep == ScreenStep.DeathWaiting:
+
+
             currentStep += 1
 
         elif currentStep == ScreenStep.FinishBattleScreen:
+            
+            battleEnded()
+
             finish_battle_close_label_frame = frame[finish_battle_close_label_height_start:finish_battle_close_label_height_end, finish_battle_close_label_width_start:finish_battle_close_label_width_end]
-            cv2.imshow("FinishBattleCloseCrop", finish_battle_close_label_frame)
+            # cv2.imshow("FinishBattleCloseCrop", finish_battle_close_label_frame)
             text = pytesseract.image_to_string(finish_battle_close_label_frame, lang='eng')
             if text == "Close":
                 InputTrigger.mouseClick(getCorrectPos((finish_battle_battle_label_trigger_pos_x, finish_battle_battle_label_trigger_pos_y)))
                 retry_count = 0
                 currentStep = ScreenStep.MainMenu
-                cv2.destroyWindow("FinishBattleCloseCrop")
+                # cv2.destroyWindow("FinishBattleCloseCrop")
             elif retry_count >= max_retry_count:
                 retry_count = 0
                 currentStep = ScreenStep.MainMenu
-                cv2.destroyWindow("FinishBattleCloseCrop")
+                # cv2.destroyWindow("FinishBattleCloseCrop")
             else:
                 retry_count += 1
 
@@ -453,20 +480,39 @@ class setInterval :
     def cancel(self) :
         self.stopEvent.set()
 
-def wrap(end, isIdleActive):
-    print(isIdleActive)
-    
-    if end:
-        InputTrigger.keyRelease("w")
-        InputTrigger.keyRelease("a")
-        InputTrigger.keyRelease("s")
-        InputTrigger.keyRelease("d")
 
-    elif isIdleActive:
-        print("skip already looping")
+def selfDesctruct():
+    global isAlreadySelfDestruct
+    global isBattleAlreadyActive
+    if isAlreadySelfDestruct == False:
+        print("not destruct yet")
+        InputTrigger.keyHold("m")
+        time.sleep(10)
+        InputTrigger.keyRelease("m")
+        isAlreadySelfDestruct = True
+        
+def battleEnded():
+    isBattleAlreadyActive = False
+    isAlreadySelfDestruct = False
+    InputTrigger.keyRelease("w")
+    InputTrigger.keyRelease("a")
+    InputTrigger.keyRelease("s")
+    InputTrigger.keyRelease("d")
+    InputTrigger.keyRelease("m")
+
+def DoBattleNow():
+    global isAlreadySelfDestruct
+    global isBattleAlreadyActive
+    if isBattleAlreadyActive:
+        # print("Battle Happening")
+        pass
     else:
+        isBattleAlreadyActive = True
         InputTrigger.keyHold("w")
-        time.sleep(20)
+
+
+
+
         stirHori = setInterval(4, stirringHorizontal)
         stirVert = setInterval(15, stirringFrontBack)
         turret = setInterval(30, action)
@@ -479,3 +525,4 @@ def wrap(end, isIdleActive):
         t2.start()
         t3=threading.Timer(240, stirVert.cancel)
         t3.start()
+        
