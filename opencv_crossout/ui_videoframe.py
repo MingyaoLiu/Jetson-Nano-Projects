@@ -244,7 +244,10 @@ def bot():
     FinishBattleScreen = Screen(const.ScreenStep.FinishBattleScreen, finish_battle_crops, 5000)
 
     d = d3dshot.create(capture_output='numpy')
-    d.display = d.displays[1]
+    if (len(d.displays) > 1):
+        d.display = d.displays[1]
+    else:
+        d.display = d.displays[0]
     d.capture(target_fps=10, region=(0, 0, const.screenWidth, const.screenHeight))
     time.sleep(1)
 
