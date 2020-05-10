@@ -1,13 +1,10 @@
-from sys import platform
+import time, threading, random, operator
 
 import d3dshot
 
-import time
 import cv2
 
 import pytesseract
-
-import random
 
 import InputTrigger
 
@@ -17,7 +14,7 @@ import numpy as np
 
 import Constants as const
 
-import operator
+
 
 def getCorrectPos(pos):
     return (int(Settings().settings.shiftX + pos[0]), int(Settings().settings.shiftY + pos[1]))
@@ -83,6 +80,7 @@ class Screen():
     def addFailCount(self) -> bool:
         self.retryCount += 1
         if self.retryCount >= self.allowedRetryCount:
+            self.retryCount = 0
             print("Step", self.screenStep.name, ">>>> FAILED")
             return False
         return True
@@ -94,6 +92,8 @@ def bot():
     global isAlreadySelfDestruct
     global isAlreadyBackStirring
     global battleStartDelay
+
+    currentStep = const.ScreenStep.MainMenu
 
     login_crops = [
         CropProperty(
@@ -196,7 +196,7 @@ def bot():
             1
         )
     ]
-    BattlePreparationScreen = Screen(const.ScreenStep.BattlePrepareScreen, battle_preparation_crops, 1000)
+    BattlePreparationScreen = Screen(const.ScreenStep.BattlePrepareScreen, battle_preparation_crops, 2000)
 
     # in_battle_crops = [
     #     CropProperty(
@@ -228,7 +228,7 @@ def bot():
             Point(const.finish_battle_close_label_trigger_pos_x, const.finish_battle_close_label_trigger_pos_y),
             True,
             ["close", "c1ose"],
-            1
+            3
         ),
         CropProperty(
             "Finish Battle BATTLE Button",
@@ -237,14 +237,14 @@ def bot():
             Point(const.finish_battle_battle_label_trigger_pos_x, const.finish_battle_battle_label_trigger_pos_y),
             False,
             ["battle", "batt1e"],
-            1
+            3
         )
     ]
 
-    FinishBattleScreen = Screen(const.ScreenStep.FinishBattleScreen, finish_battle_crops, 2000)
+    FinishBattleScreen = Screen(const.ScreenStep.FinishBattleScreen, finish_battle_crops, 3000)
 
 
-    currentStep = const.ScreenStep.Login
+
     
 
 
@@ -386,13 +386,6 @@ def bot():
             break
 
 
-import sched
-
-import time, threading
-
-StartTime=time.time()
-
-
 class setInterval :
     def __init__(self,interval,action) :
         self.interval=interval
@@ -467,7 +460,7 @@ def battleEnded():
 
 
 def calllOut():
-    calloutLst = ["b", "g", "c", "x", "z"]
+    calloutLst = ["b", "c", "x", "z"]
     callout = random.choice(list(calloutLst))
     InputTrigger.KeyPress(callout).start()
 
@@ -484,29 +477,59 @@ backStirTimer2 = None
 backStirTimer3 = None
 backStirTimer4 = None
 
+needLongBackStir = False
+shortBackStirCount = 0
 backStirDirection = "a"
+
+
+def backStir4():
+    global backStirTimer3
+    global shortBackStirCount
+    global needLongBackStir
+    try:
+        if backStirTimer3: 
+            backStirTimer3.cancel()
+    except ValueError:
+        pass
+    if shortBackStirCount >= 2:
+        needLongBackStir = True
+    shortBackStirCount = 0
 
 def backStir3():
     global backStirDirection
     global backStirTimer2
+    global backStirTimer3
     global isAlreadyBackStirring
 
-    backStirTimer2.cancel()
+    try:
+        if backStirTimer2: 
+            backStirTimer2.cancel()
+    except ValueError:
+        pass
     isAlreadyBackStirring = False
+    backStirTimer3 = threading.Timer(20, backStir4)
+    backStirTimer3.start()
 
 def backStir2():
     global backStirTimer1
     global backStirTimer2
-    backStirTimer1.cancel()
+    try:
+        if backStirTimer1: 
+            backStirTimer1.cancel()
+    except ValueError:
+        pass
     InputTrigger.keyHold("w")
     backStirTimer2 = threading.Timer(3, backStir3)
     backStirTimer2.start()
         
 def backStir():
     # print("<< In Battle >> Backing")
+    global shortBackStirCount
     global backStirDirection
     global backStirTimer1
     global isAlreadyBackStirring
+    global needLongBackStir
+
     if isAlreadyBackStirring:
         pass
     else:
@@ -519,8 +542,12 @@ def backStir():
         # ranPara = random.choice(moveLst)
         backStirDirection = random.choice(moveLst)
         InputTrigger.KeyPress("s", 2.5).start()
-
-        InputTrigger.KeyPress(backStirDirection, 1.6).start()
+        if needLongBackStir:
+            InputTrigger.KeyPress(backStirDirection, 1.75).start()
+            needLongBackStir = False
+        else:
+            InputTrigger.KeyPress(backStirDirection, 1.5).start()
+            shortBackStirCount += 1
 
         backStirTimer1 = threading.Timer(2.65, backStir2)
         backStirTimer1.start() 
