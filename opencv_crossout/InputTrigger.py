@@ -6,6 +6,7 @@ import ctypes
 import time
 import win32api
 import win32con
+import threading
 
 from ctypes import windll
 
@@ -18,32 +19,29 @@ def char2key(c):
 
 # Actuals Functions
 
-def keyPress(*args):
-    '''
-    one press, one release.
-    accepts as many arguments as you want. e.g. press('left_arrow', 'a','b').
-    '''
-    for i in args:
-        win32api.keybd_event(char2key(i), 0,0,0)
-        time.sleep(.05)
-        win32api.keybd_event(char2key(i), 0, win32con.KEYEVENTF_KEYUP, 0)
+
+class KeyPress:
+
+    def __init__(self, key, duration = 0.04):
+        # print(key, duration)
+        self.key = char2key(key)
+        self.keyPressTimer = threading.Timer(float(duration), self.threadEnd)
 
 
-def keyHold(*args):
-    '''
-    one press, one release.
-    accepts as many arguments as you want. e.g. press('left_arrow', 'a','b').
-    '''
-    for i in args:
-        win32api.keybd_event(char2key(i), 0,0,0)
+    def threadEnd(self):
+        self.keyPressTimer.cancel()
+        win32api.keybd_event(self.key, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+    def start(self):
+        win32api.keybd_event(self.key, 0,0,0)
+        self.keyPressTimer.start()
+
+
+def keyHold(key):
+    win32api.keybd_event(char2key(key), 0,0,0)
     
-def keyRelease(*args):
-    '''
-    one press, one release.
-    accepts as many arguments as you want. e.g. press('left_arrow', 'a','b').
-    '''
-    for i in args:
-        win32api.keybd_event(char2key(i), 0, win32con.KEYEVENTF_KEYUP, 0)
+def keyRelease(key):
+    win32api.keybd_event(char2key(key), 0, win32con.KEYEVENTF_KEYUP, 0)
     
 
 
