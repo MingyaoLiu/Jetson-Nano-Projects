@@ -108,6 +108,17 @@ battle_type_title_label_height_end = int(screenHeight / 13.5 + battle_type_title
 battle_type_title_label_trigger_pos_x = int(battle_type_title_label_width_start + battle_type_title_label_width / 2)
 battle_type_title_label_trigger_pos_y = int(battle_type_title_label_height_start + battle_type_title_label_height / 2)
 
+
+battle_victory_defeat_giant_width = 550
+battle_victory_defeat_giant_width_start = int(screenWidth / 2 - battle_victory_defeat_giant_width / 2)
+battle_victory_defeat_giant_width_end = int(screenWidth / 2 + battle_victory_defeat_giant_width / 2)
+battle_victory_defeat_giant_width_height = 150
+battle_victory_defeat_giant_width_height_start = int(screenHeight / 2.1 - battle_victory_defeat_giant_width_height / 2)
+battle_victory_defeat_giant_width_height_end = int(screenHeight / 2.1 + battle_victory_defeat_giant_width_height / 2)
+battle_victory_defeat_giant_width_trigger_pos_x = int(battle_victory_defeat_giant_width_start + battle_victory_defeat_giant_width / 2)
+battle_victory_defeat_giant_width_trigger_pos_y = int(battle_victory_defeat_giant_width_height_start + battle_victory_defeat_giant_width_height / 2)
+
+
 battle_lose_wait_width = 32
 battle_lose_wait_width_start = int(screenWidth / 2 - 112 - battle_lose_wait_width / 2)
 battle_lose_wait_width_end = int(screenWidth / 2 - 112 + battle_lose_wait_width / 2)

@@ -2,13 +2,8 @@ from sys import platform
 
 import d3dshot
 
-import matplotlib.pyplot as plt
 import time
-import os
 import cv2
-import math
-
-import east_recognition
 
 import pytesseract
 
@@ -51,14 +46,15 @@ class CropArea(tuple):
         return tuple.__new__(CropArea, (x, y, xs, ys))
 
 class CropProperty(tuple):
-    def __new__(self, name: str, area: CropArea, clickPos: Point, willClick: bool, expectedStrs: [[str]], clickWaitTime: int):
+    def __new__(self, name: str, area: CropArea, requiredMatch: bool, clickPos: Point, willClick: bool, expectedStrs: [str],  clickWaitTime: int):
         CropProperty.name = property(operator.itemgetter(0))
         CropProperty.area = property(operator.itemgetter(1))
-        CropProperty.clickPos = property(operator.itemgetter(2))
-        CropProperty.willClick = property(operator.itemgetter(3))
-        CropProperty.expectedStrs = property(operator.itemgetter(4))
-        CropProperty.clickWaitTime = property(operator.itemgetter(5))
-        return tuple.__new__(CropProperty, (name, area, clickPos, willClick, expectedStrs, clickWaitTime))
+        CropProperty.requiredMatch = property(operator.itemgetter(2))
+        CropProperty.clickPos = property(operator.itemgetter(3))
+        CropProperty.willClick = property(operator.itemgetter(4))
+        CropProperty.expectedStrs = property(operator.itemgetter(5))
+        CropProperty.clickWaitTime = property(operator.itemgetter(6))
+        return tuple.__new__(CropProperty, (name, area, requiredMatch, clickPos, willClick, expectedStrs, clickWaitTime))
 
 class Screen():
 
@@ -72,10 +68,10 @@ class Screen():
         for crop in self.crops:
             crop_frame = frame[crop.area.y:crop.area.ys, crop.area.x:crop.area.xs]
             low_txt = pytesseract.image_to_string(crop_frame, lang='eng').lower()
-            for expStrs in crop.expectedStrs:
-                if low_txt not in expStrs:
-                    return False
-                pass
+            if crop.requiredMatch and (low_txt not in crop.expectedStrs):
+                return False
+            pass
+        print("Step", self.screenStep.name, ">>>> SATISFIED")
         return True
     
     def executeClick(self):
@@ -87,6 +83,7 @@ class Screen():
     def addFailCount(self) -> bool:
         self.retryCount += 1
         if self.retryCount >= self.allowedRetryCount:
+            print("Step", self.screenStep.name, ">>>> FAILED")
             return False
         return True
         
@@ -95,18 +92,17 @@ class Screen():
 def bot():
 
     global isAlreadySelfDestruct
-    global isBattleAlreadyActive
     global isAlreadyBackStirring
     global battleStartDelay
-    global battleStartDelayTimer
 
     login_crops = [
         CropProperty(
             "Login Button",
             CropArea(const.login_label_width_start, const.login_label_height_start, const.login_label_width_end, const.login_label_height_end),
+            True,
             Point(const.login_label_trigger_pos_x, const.login_label_trigger_pos_y),
             True,
-            [["login","log in", "log ln", "logln"]],
+            ["login","log in", "log ln", "logln"],
             5
         )
     ]
@@ -116,77 +112,141 @@ def bot():
         CropProperty(
             "Welcome Promo Close Button",
             CropArea(const.welcome_promo_label_width_start, const.welcome_promo_label_height_start, const.welcome_promo_label_width_end, const.welcome_promo_label_height_end),
+            True,
             Point(const.welcome_promo_label_trigger_pos_x, const.welcome_promo_label_trigger_pos_y),
             True,
-            [["close", "c1ose", "ciose"]],
+            ["close", "c1ose", "ciose"],
             1
         )
     ]
     WelcomeScreen = Screen(const.ScreenStep.WelcomeScreen, welcome_crops, 30)
     
-
     mainmenu_challenge_crops = [
         CropProperty(
             "Mainmenu Challenge Complete OK Button",
             CropArea(const.mainmenu_challenge_complete_ok_width_start, const.mainmenu_challenge_complete_ok_height_start, const.mainmenu_challenge_complete_ok_width_end, const.mainmenu_challenge_complete_ok_height_end),
+            True,
             Point(const.mainmenu_challenge_complete_ok_trigger_pos_x, const.mainmenu_challenge_complete_ok_trigger_pos_y),
             True,
-            [["ok", "0k"]],
+            ["ok", "0k"],
             1
         )
     ]
     ChallengeCompleteScreen = Screen(const.ScreenStep.ChallengeCompleteScreen, mainmenu_challenge_crops, 30)
-
     
     mainmenu_crops = [
         CropProperty(
             "Main Menu Battle Button",
             CropArea(const.mainmenu_battle_label_width_start, const.mainmenu_battle_label_height_start, const.mainmenu_battle_label_width_end, const.mainmenu_battle_label_height_end),
+            False,
             Point(const.mainmenu_battle_label_trigger_pos_x, const.mainmenu_battle_label_trigger_pos_y),
             False,
-            [["battle", "batt1e"]],
+            ["battle", "batt1e"],
             1
         ),
         CropProperty(
             "Main Menu Select Mode Button",
             CropArea(const.mainmenu_select_mode_label_width_start, const.mainmenu_select_mode_label_height_start, const.mainmenu_select_mode_label_width_end, const.mainmenu_select_mode_label_height_end),
+            True,
             Point(const.mainmenu_select_mode_label_trigger_pos_x, const.mainmenu_select_mode_label_trigger_pos_y),
             True,
-            [["select mode", "selectmode", "se1ect mode"]],
+            ["select mode", "selectmode", "se1ect mode"],
             1
         )
     ]
     MainMenuScreen = Screen(const.ScreenStep.MainMenu, mainmenu_crops, 30)
 
+    select_mode_click_pos = [
+        getCorrectPos((const.scrap_btn_trigger_pos_x, const.scrap_btn_trigger_pos_y)),
+        getCorrectPos((const.wire_btn_trigger_pos_x, const.wire_btn_trigger_pos_y)),
+        getCorrectPos((const.battery_btn_trigger_pos_x, const.battery_btn_trigger_pos_y))
+    ]
+    SelectModeScreen = Screen(const.ScreenStep.SelectMode, [], 30)
 
+    resource_prepare_crops = [
+        CropProperty(
+            "Scrap/Wire/Battery Prepare to Battle Button",
+            CropArea(const.get_resource_battle_label_width_start, const.get_resource_battle_label_height_start, const.get_resource_battle_label_width_end, const.get_resource_battle_label_height_end),
+            True,
+            Point(const.get_resource_battle_label_trigger_pos_x, const.get_resource_battle_label_trigger_pos_y),
+            True,
+            ["battle", "batt1e"],
+            1
+        ),
+        CropProperty(
+            "Patrol Mode Prepare to Battle Button",
+            CropArea(const.get_resource_battle_label_width_start, const.get_resource_patrol_battle_label_height_start, const.get_resource_battle_label_width_end, const.get_resource_patrol_battle_label_height_end),
+            False,
+            Point(const.get_resource_patrol_battle_label_trigger_pos_x, const.get_resource_patrol_battle_label_trigger_pos_y),
+            False,
+            ["battle", "batt1e"],
+            1
+        )
+    ]
+    ResourcePrepareBattleScreen = Screen(const.ScreenStep.GetResourceMenu, resource_prepare_crops, 30)
+
+    battle_preparation_crops = [
+        CropProperty(
+            "Prepare to Battle Summary Screen Title",
+            CropArea(const.battle_type_title_label_width_start, const.battle_type_title_label_height_start, const.battle_type_title_label_width_end, const.battle_type_title_label_height_end),
+            True,
+            Point(const.mainmenu_challenge_complete_ok_trigger_pos_x, const.mainmenu_challenge_complete_ok_trigger_pos_y),
+            False,
+            ["assault", "encounter", "domination"],
+            1
+        )
+    ]
+    BattlePreparationScreen = Screen(const.ScreenStep.BattlePrepareScreen, battle_preparation_crops, 1000)
+
+    # in_battle_crops = [
+    #     CropProperty(
+    #         "Defeat / Victory Screen",
+    #         CropArea(const.battle_lose_survivor_part_width_start, const.battle_lose_survivor_part_height_start, const.battle_lose_survivor_part_width_end, const.battle_lose_survivor_part_height_end),
+    #         False,
+    #         Point(const.battle_lose_survivor_part_trigger_pos_x, const.battle_lose_survivor_part_trigger_pos_y),
+    #         False,
+    #         ["survivor's parts", "survivors parts", "survivorsparts"],
+    #         1
+    #     ),
+    #     CropProperty(
+    #         "Survivor's Kit",
+    #         CropArea(const.battle_lose_survivor_part_width_start, const.battle_lose_survivor_part_height_start, const.battle_lose_survivor_part_width_end, const.battle_lose_survivor_part_height_end),
+    #         False,
+    #         Point(const.battle_lose_survivor_part_trigger_pos_x, const.battle_lose_survivor_part_trigger_pos_y),
+    #         False,
+    #         ["survivor's parts", "survivors parts", "survivorsparts"],
+    #         1
+    #     )
+    # ]
+    InBattleScreen = Screen(const.ScreenStep.InBattleNow, [], 30)
+
+    finish_battle_crops = [
+        CropProperty(
+            "Finish Battle Close Button",
+            CropArea(const.finish_battle_close_label_width_start, const.finish_battle_close_label_height_start, const.finish_battle_close_label_width_end, const.finish_battle_close_label_height_end),
+            True,
+            Point(const.finish_battle_close_label_trigger_pos_x, const.finish_battle_close_label_trigger_pos_y),
+            True,
+            ["close", "c1ose"],
+            1
+        ),
+        CropProperty(
+            "Finish Battle BATTLE Button",
+            CropArea(const.finish_battle_battle_label_width_start, const.finish_battle_battle_label_height_start, const.finish_battle_battle_label_width_end, const.finish_battle_battle_label_height_end),
+            False,
+            Point(const.finish_battle_battle_label_trigger_pos_x, const.finish_battle_battle_label_trigger_pos_y),
+            False,
+            ["battle", "batt1e"],
+            1
+        )
+    ]
+
+    FinishBattleScreen = Screen(const.ScreenStep.FinishBattleScreen, finish_battle_crops, 2000)
 
 
     currentStep = const.ScreenStep.Login
     
-    retry_count = 0
 
-    
-    def getMaxRetryCount(step):
-        if step == const.ScreenStep.BattlePrepareScreen:
-            return 800
-        elif step == const.ScreenStep.InBattleNow:
-            return 300
-        elif step == const.ScreenStep.FinishBattleScreen:
-            return 800   
-        else:
-            return 100
-
-
-
-    def report():
-        print("Current Step is:", [currentStep])
-        print("Current Retry Count is:", retry_count)
-        calloutLst = ["b", "g", "c", "x", "z"]
-        callout = random.choice(list(calloutLst))
-        InputTrigger.KeyPress(callout).start()
-        InputTrigger.KeyPress("r").start()
-    
-    setInterval(20, report)
 
     d = d3dshot.create(capture_output='numpy')
     d.display = d.displays[1]
@@ -199,10 +259,12 @@ def bot():
         prev_frame = d.get_frame(10)
         frame = cv2.cvtColor(np_frame, cv2.COLOR_BGR2RGB)
 
-        # test_frame = frame[ in_battle_mini_map_height_start:in_battle_mini_map_height_end, in_battle_mini_map_width_start:in_battle_mini_map_width_end ]
+        # test_frame = frame[ const.battle_victory_defeat_giant_width_height_start:const.battle_victory_defeat_giant_width_height_end, const.battle_victory_defeat_giant_width_start:const.battle_victory_defeat_giant_width_end ]
         # cv2.imshow("TestCrop", test_frame)
         # text = pytesseract.image_to_string(test_frame, lang='eng')
         # print(text)
+        # if (text.lower == "victory" or text.lower == "defeat"):
+        #     print("Good")
 
         if currentStep == const.ScreenStep.Login:
             screen = LoginScreen
@@ -243,206 +305,80 @@ def bot():
             else:
                 currentStep += 1
 
-
-        # # elif currentStep == ScreenStep.MainMenu:
-        # #     mainmenu_battle_label_frame = frame[mainmenu_battle_label_height_start:mainmenu_battle_label_height_end, mainmenu_battle_label_width_start:mainmenu_battle_label_width_end]
-        # #     cv2.imshow("MainMenuBattleCrop", mainmenu_battle_label_frame)
-        # #     text = pytesseract.image_to_string(mainmenu_battle_label_frame, lang='eng')
-        # #     if text == "BATTLE":
-        # #         InputTrigger.mouseClick(Settings().settings.shiftX + mainmenu_battle_label_trigger_pos_x, Settings().settings.shiftY + mainmenu_battle_label_trigger_pos_y)   
-        # #         retry_count = 0
-        # #         currentStep += 1
-        # #         cv2.destroyWindow("MainMenuBattleCrop")
-        # #     elif retry_count >= max_retry_count:
-        # #         retry_count = 0
-        # #         currentStep += 1
-        # #         cv2.destroyWindow("MainMenuBattleCrop")
-        # #     else:
-        # #         retry_count += 1
-
-        # elif currentStep == ScreenStep.MainMenu:
-        #     mainmenu_challenge_complete_ok_frame = frame[const.mainmenu_challenge_complete_ok_height_start:const.mainmenu_challenge_complete_ok_height_end, const.mainmenu_challenge_complete_ok_width_start:const.mainmenu_challenge_complete_ok_width_end]
-        #     # cv2.imshow("MainMenuChallengeCrop", mainmenu_challenge_complete_ok_frame)
-        #     text_challenge = pytesseract.image_to_string(mainmenu_challenge_complete_ok_frame, lang='eng')
-
-        #     mainmenu_select_mode_label_frame = frame[const.mainmenu_select_mode_label_height_start:const.mainmenu_select_mode_label_height_end, const.mainmenu_select_mode_label_width_start:const.mainmenu_select_mode_label_width_end]
-        #     # cv2.imshow("MainMenuBattleCrop", mainmenu_select_mode_label_frame)
-        #     text_selectmode = pytesseract.image_to_string(const.mainmenu_select_mode_label_frame, lang='eng')
-
-        #     if text_challenge == "OK":
-        #         InputTrigger.mouseClick(getCorrectPos((const.mainmenu_challenge_complete_ok_trigger_pos_x, const.mainmenu_challenge_complete_ok_trigger_pos_y)))
-        #         time.sleep(3)
-        #         retry_count += 1
-        #     if text_selectmode == "Select mode":
-        #         InputTrigger.mouseClick(getCorrectPos((mainmenu_select_mode_label_trigger_pos_x, mainmenu_select_mode_label_trigger_pos_y)))
-        #         time.sleep(1)
-        #         retry_count = 0
-        #         currentStep += 1
-        #         # cv2.destroyWindow("MainMenuBattleCrop")
-        #         # cv2.destroyWindow("MainMenuChallengeCrop")
-        #     elif retry_count >= getMaxRetryCount(currentStep):
-        #         retry_count = 0
-        #         currentStep += 1
-        #         # cv2.destroyWindow("MainMenuBattleCrop")
-        #         # cv2.destroyWindow("MainMenuChallengeCrop")
-        #     else:
-        #         retry_count += 1
-
-        # elif currentStep == ScreenStep.SelectMode:
-        #     mode = random.choice(list(BattleMode))
-        #     # mode = BattleMode.scrap
-        #     # print(mode)
-        #     if mode == BattleMode.scrap:
-        #         InputTrigger.mouseClick(getCorrectPos((scrap_btn_trigger_pos_x, const.scrap_btn_trigger_pos_y)))
-        #         time.sleep(1)
-        #     elif mode == BattleMode.wire:
-        #         InputTrigger.mouseClick(getCorrectPos((wire_btn_trigger_pos_x, wire_btn_trigger_pos_y)))
-        #         time.sleep(1)
-        #     elif mode == BattleMode.battery:
-        #         InputTrigger.mouseClick(getCorrectPos((battery_btn_trigger_pos_x, battery_btn_trigger_pos_y)))
-        #         time.sleep(1)
-        #     else:
-        #         InputTrigger.mouseClick(getCorrectPos((patrol_btn_trigger_pos_x, patrol_btn_trigger_pos_y)))
-        #         time.sleep(1)
-        #     retry_count = 0
-        #     currentStep += 1
-
-        # elif currentStep == ScreenStep.GetResourceMenu:
-        #     get_resource_battle_label_frame = frame[get_resource_battle_label_height_start:get_resource_battle_label_height_end, get_resource_battle_label_width_start:get_resource_battle_label_width_end]
-        #     get_resource_patrol_battle_label_frame = frame[get_resource_patrol_battle_label_height_start:get_resource_patrol_battle_label_height_end, get_resource_battle_label_width_start:get_resource_battle_label_width_end]
-        #     # cv2.imshow("GetResourceBattleCrop", get_resource_battle_label_frame)
-        #     # cv2.imshow("GetResourcePatrolBattleCrop", get_resource_patrol_battle_label_frame)
-        #     text1 = pytesseract.image_to_string(get_resource_battle_label_frame, lang='eng')
-        #     text2 = pytesseract.image_to_string(get_resource_patrol_battle_label_frame, lang='eng')
-        #     if text1 == "BATTLE":
-        #         InputTrigger.mouseClick(getCorrectPos((get_resource_battle_label_trigger_pos_x, get_resource_battle_label_trigger_pos_y)))
-        #         time.sleep(1)
-        #         retry_count = 0
-        #         currentStep += 1
-        #         # cv2.destroyWindow("GetResourceBattleCrop")
-        #         # cv2.destroyWindow("GetResourcePatrolBattleCrop")
-        #     elif text2 == "BATTLE":
-        #         InputTrigger.mouseClick(getCorrectPos((get_resource_patrol_battle_label_trigger_pos_x, get_resource_patrol_battle_label_trigger_pos_y)))
-        #         time.sleep(1)
-        #         retry_count = 0
-        #         currentStep += 1
-        #         # cv2.destroyWindow("GetResourceBattleCrop")
-        #         # cv2.destroyWindow("GetResourcePatrolBattleCrop")
-        #     elif retry_count >= getMaxRetryCount(currentStep):
-        #         retry_count = 0
-        #         currentStep += 1
-        #         # cv2.destroyWindow("WelcomePromoCrop")
-        #     else:
-        #         retry_count += 1
-
-        # elif currentStep == ScreenStep.BattlePrepareScreen:
-
-
-        #     battle_type_title_label_frame = frame[battle_type_title_label_height_start:battle_type_title_label_height_end, battle_type_title_label_width_start:battle_type_title_label_width_end]
-        #     # cv2.imshow("BattlePrepareCrop", battle_type_title_label_frame)
-        #     text = pytesseract.image_to_string(battle_type_title_label_frame, lang='eng')
-        #     # print(text)
-        #     if text == "Assault" or text == "Encounter" or text == "Domination" or text == "Dominati"  or text == "Dominatio":
-        #         InputTrigger.mouseClick(getCorrectPos((battle_type_title_label_trigger_pos_x, battle_type_title_label_trigger_pos_y)))
-        #         time.sleep(1)
-        #         retry_count = 0
-        #         currentStep += 1
-        #         # cv2.destroyWindow("BattlePrepareCrop")
+        elif currentStep == const.ScreenStep.SelectMode:
+            clickPos = random.choice(select_mode_click_pos)
+            InputTrigger.mouseClick(clickPos)
+            time.sleep(1)
+            currentStep += 1
             
-        #     elif retry_count >= getMaxRetryCount(currentStep):
-        #         retry_count = 0
-        #         currentStep += 1
-        #         # cv2.destroyWindow("BattlePrepareCrop")
-        #     else:
-        #         retry_count += 1
+        elif currentStep == const.ScreenStep.GetResourceMenu:
+            screen = ResourcePrepareBattleScreen
+            if screen.checkSatisfy(frame):
+                screen.executeClick()
+                currentStep += 1
+            elif screen.addFailCount():
+                pass
+            else:
+                currentStep += 1
+        
+        elif currentStep == const.ScreenStep.BattlePrepareScreen:
+            screen = BattlePreparationScreen
+            if screen.checkSatisfy(frame):
+                screen.executeClick()
+                currentStep += 1
+            elif screen.addFailCount():
+                pass
+            else:
+                currentStep += 1
 
+        elif currentStep == const.ScreenStep.InBattleNow:
+            screen = InBattleScreen
+            DoBattleNow()
+            currentStep += 1
 
+        elif currentStep == const.ScreenStep.DeathWaiting:
+            currentStep += 1
 
+        elif currentStep == const.ScreenStep.FinishBattleScreen:
+            screen = FinishBattleScreen
+            if screen.checkSatisfy(frame):
+                battleEnded()
+                screen.executeClick()
+                currentStep = const.ScreenStep.ChallengeCompleteScreen
+            elif screen.addFailCount():
+                if battleStartDelay == False:
+                    InputTrigger.KeyPress("t").start()
+                    test_frame = frame[const.in_battle_mini_map_height_start:const.in_battle_mini_map_height_end, const.in_battle_mini_map_width_start:const.in_battle_mini_map_width_end ]
+                    hsv = cv2.cvtColor(test_frame, cv2.COLOR_BGR2HSV)
+                    lower_red = np.array([0,180,180])
+                    upper_red = np.array([10,255,255])
+                    mask = cv2.inRange(hsv, lower_red, upper_red)
+                    if cv2.countNonZero(mask) > 10:
+                        executeOrder66()
+                        
+                    front_frame = np_frame[const.in_battle_front_view_height_start:const.in_battle_front_view_height_end, const.in_battle_front_view_width_start:const.in_battle_front_view_width_end]
+                    prev_front_frame = prev_frame[const.in_battle_front_view_height_start:const.in_battle_front_view_height_end, const.in_battle_front_view_width_start:const.in_battle_front_view_width_end]
 
-        # elif currentStep == ScreenStep.InBattleNow:
-        #     # battle_lose_wait_frame = frame[battle_lose_wait_height_start:battle_lose_wait_height_end, battle_lose_wait_width_start:battle_lose_wait_width_end]
-        #     # cv2.imshow("InBattleCrop", battle_lose_wait_frame)
-        #     # ps_text = pytesseract.image_to_string(battle_lose_wait_frame, lang='eng')
+                    comp = cv2.absdiff(front_frame, prev_front_frame)
+                    res = comp.astype(np.uint8)
+                    percentage = (np.count_nonzero(res) * 100) / res.size
+                    if percentage < 85:
+                        backStir()
 
-        #     battle_lose_survivor_part_frame = frame[battle_lose_survivor_part_height_start:battle_lose_survivor_part_height_end, battle_lose_survivor_part_width_start:battle_lose_survivor_part_width_end]
-        #     # cv2.imshow("InBattleSurvivorCrop", battle_lose_survivor_part_frame)
-        #     surv_text = pytesseract.image_to_string(battle_lose_survivor_part_frame, lang='eng')
-        #     # print(ps_text, surv_text)
-            
+                    health_frame = frame[ const.in_battle_health_digit_height_start:const.in_battle_health_digit_height_end, const.in_battle_health_digit_width_start:const.in_battle_health_digit_width_end ]
+                    a = pytesseract.image_to_string(health_frame)
+                    try:
+                        inta = int(a)
+                        if (inta <= 200):
+                            selfDesctruct()
+                    except ValueError:
+                        pass
+            else:
+                battleEnded()
+                currentStep = const.ScreenStep.ChallengeCompleteScreen
 
-        #     if (surv_text == "Survivor's parts"):
-        #         retry_count = 0
-        #         currentStep += 1
-        #         # cv2.destroyWindow("InBattleCrop")
-        #     elif retry_count >= getMaxRetryCount(currentStep):
-        #         retry_count = 0
-        #         currentStep += 1
-        #     else:
-        #         if battleStartDelay:
-        #             DoBattleNow()
-        #         else:
-                    
-        #             InputTrigger.KeyPress("t").start()
-
-        #             test_frame = frame[ in_battle_mini_map_height_start:in_battle_mini_map_height_end, in_battle_mini_map_width_start:in_battle_mini_map_width_end ]
-        #             hsv = cv2.cvtColor(test_frame, cv2.COLOR_BGR2HSV)
-        #             lower_red = np.array([0,180,180])
-        #             upper_red = np.array([10,255,255])
-        #             mask = cv2.inRange(hsv, lower_red, upper_red)
-        #             # cv2.imshow("MiniMap", mask)
-        #             if cv2.countNonZero(mask) > 10:
-        #                 executeOrder66()
-                
-        #             front_frame = np_frame[in_battle_front_view_height_start:in_battle_front_view_height_end, in_battle_front_view_width_start:in_battle_front_view_width_end]
-        #             prev_front_frame = prev_frame[in_battle_front_view_height_start:in_battle_front_view_height_end, in_battle_front_view_width_start:in_battle_front_view_width_end]
-
-        #             comp = cv2.absdiff(front_frame, prev_front_frame)
-        #             # cv2.imshow("Comp", comp)
-        #             res = comp.astype(np.uint8)
-        #             percentage = (np.count_nonzero(res) * 100) / res.size
-        #             # print(percentage)
-        #             if percentage < 85:
-        #                 # print(isAlreadyBackStirring)
-        #                 backStir()
-
-        #             health_frame = frame[ in_battle_health_digit_height_start:in_battle_health_digit_height_end, in_battle_health_digit_width_start:in_battle_health_digit_width_end ]
-        #             # cv2.imshow("TestCrop", health_frame)
-        #             a = pytesseract.image_to_string(health_frame)
-        #             try:
-        #                 inta = int(a)
-        #                 if (inta <= 200):
-        #                     selfDesctruct()
-        #             except ValueError:
-        #                 # print(ValueError)
-        #                 pass
-
-        #             retry_count += 1
-
-        # elif currentStep == ScreenStep.DeathWaiting:
-
-        #     currentStep += 1
-
-        # elif currentStep == ScreenStep.FinishBattleScreen:
-            
-
-        #     finish_battle_close_label_frame = frame[finish_battle_close_label_height_start:finish_battle_close_label_height_end, finish_battle_close_label_width_start:finish_battle_close_label_width_end]
-        #     # cv2.imshow("FinishBattleCloseCrop", finish_battle_close_label_frame)
-        #     text = pytesseract.image_to_string(finish_battle_close_label_frame, lang='eng')
-        #     if text == "Close":
-                
-        #         battleEnded()
-        #         InputTrigger.mouseClick(getCorrectPos((finish_battle_close_label_trigger_pos_x, finish_battle_close_label_trigger_pos_y)))
-        #         time.sleep(1)
-        #         retry_count = 0
-        #         currentStep = ScreenStep.MainMenu
-        #         # cv2.destroyWindow("FinishBattleCloseCrop")
-        #     elif retry_count >= getMaxRetryCount(currentStep):
-        #         retry_count = 0
-        #         currentStep = ScreenStep.MainMenu
-        #         # cv2.destroyWindow("FinishBattleCloseCrop")
-        #     else:
-        #         retry_count += 1
-
+        else:
+            print("CURRENT STEP:", currentStep)
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
             d.stop()
@@ -499,8 +435,26 @@ def battleEnded():
     global isBattleAlreadyActive
     global isAlreadyBackStirring
     global battleStartDelay
+    global calloutInterval
+    global carJackInterval
 
-    stirInterval.cancel()
+    try:
+        if calloutInterval: 
+            calloutInterval.cancel()
+    except ValueError:
+        pass
+    try:
+        if carJackInterval: 
+            carJackInterval.cancel()
+    except ValueError:
+        pass
+    try:
+        if stirInterval: 
+            stirInterval.cancel()
+    except ValueError:
+        pass
+
+
     battleStartDelay = True
     isBattleAlreadyActive = False
     isAlreadySelfDestruct = False
@@ -511,6 +465,19 @@ def battleEnded():
     InputTrigger.keyRelease("d")
     InputTrigger.keyRelease("m")
 
+
+def calllOut():
+    calloutLst = ["b", "g", "c", "x", "z"]
+    callout = random.choice(list(calloutLst))
+    InputTrigger.KeyPress(callout).start()
+
+def carJack():
+    InputTrigger.KeyPress("r").start()
+
+
+stirInterval = None
+calloutInterval = None
+carJackInterval = None
 
 backStirTimer1 = None
 backStirTimer2 = None
@@ -584,12 +551,20 @@ def delayBattleStart():
     global stirInterval
     global battleStartDelay
     global battleStartDelayTimer
+    global calloutInterval
+    global carJackInterval
     battleStartDelay = False
-    battleStartDelayTimer.cancel()
+    try:
+        if battleStartDelayTimer: 
+            battleStartDelayTimer.cancel()
+    except ValueError:
+        pass
     
     stirInterval = setInterval(6, stirringHorizontal)
+    calloutInterval = setInterval(40, calllOut)
+    carJackInterval = setInterval(10, carJack)
 
-stirInterval = None
+
 
 def DoBattleNow():
     global isAlreadySelfDestruct
