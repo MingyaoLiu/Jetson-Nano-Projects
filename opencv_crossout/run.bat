@@ -6,6 +6,7 @@ if exist "C:\ProgramData\Anaconda3\_conda.exe" (
     call curl https://repo.anaconda.com/archive/Anaconda3-2020.02-Windows-x86_64.exe -O
     call start /wait "" Anaconda3-2020.02-Windows-x86_64.exe /InstallationType=AllUsers /AddToPath=1 /RegisterPython=1 /S /D=C:\ProgramData\Anaconda3
 )
+pause
 
 call "C:\ProgramData\Anaconda3\Scripts\activate.bat"
 call conda env create -f environment.yml
