@@ -241,9 +241,9 @@ def bot():
         )
     ]
 
-    FinishBattleScreen = Screen(const.ScreenStep.FinishBattleScreen, finish_battle_crops, 3000)
+    FinishBattleScreen = Screen(const.ScreenStep.FinishBattleScreen, finish_battle_crops, 5000)
 
-
+ttttsat
 
     
 
