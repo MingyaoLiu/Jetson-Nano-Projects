@@ -46,7 +46,7 @@
     "@types/request": "^2.48.4",
     "chai": "^4.2.0",
     "copy-webpack-plugin": "^5.1.1",
-    "mocha": "^7.1.1",
+    "mocha": "^10.2.0",
     "nodemon": "*",
     "request": "^2.88.2",
     "ts-loader": "^6.2.2",
